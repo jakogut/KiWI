@@ -98,9 +98,36 @@ class WindowsInstallApp(object):
 
     def install_os(self):
         pass
+    def extract_wim(self, wimfile, imageid, target):
+        r, w = os.pipe()
+        process = subprocess.Popen(['sudo', '/usr/bin/wimlib-imagex', 'apply', wimfile, imageid, target], stdout=w, stderr=subprocess.PIPE)
 
-    def extract_wim(wimfile, imageid, target):
-        p = subprocess.call('wimlib-imagex {} {} {}', wimfile, imageid, target)
+        #self.d.progressbox(fd=r, text='Applying WIM to target...', width=80, height=20)
+
+        filp = os.fdopen(r)
+
+        while True:
+            line = filp.readline()
+            logging.info('Ignoring line: {}'.format(line))
+            if 'Creating files' in line: break
+
+        for stage in ['Creating files', 'Extracting file data', 'Applying metadata to files']:
+            self.d.gauge_start(text=stage, width=80, percent=0)
+
+            while(True):
+                line = filp.readline()
+                logging.info(line)
+                if stage not in line: continue
+                pct = re.search(r'\d+%', line).group(0)[:-1]
+
+                if pct:
+                    self.d.gauge_update(int(pct))
+                    logging.info('{}: {}%'.format(stage, pct))
+                    if pct == '100': break
+
+
+        exit_code = self.d.gauge_stop()
+        process.communicate()
 
     def install_bootloader(self):
         pass
