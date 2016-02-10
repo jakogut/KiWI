@@ -157,7 +157,7 @@ sys.excepthook = handle_exception
 if __name__ == '__main__':
     logger.setLevel(logging.INFO)
 
-    fh = logging.FileHandler('install.log')
+    fh = logging.FileHandler('/tmp/kiwi-install.log')
     logger.addHandler(fh)
 
     app = WindowsInstallApp()
