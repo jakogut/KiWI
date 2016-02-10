@@ -93,6 +93,7 @@ class WindowsInstallApp(object):
             self.source = path
             logging.info('Set installation source to {}'.format(path))
 
+    def mount_partitions(boot, os):
         pass
 
     def install_os(self):
