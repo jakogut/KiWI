@@ -39,8 +39,6 @@ class WindowsInstallApp(object):
             ('Prepare Storage Device', partitioning_submenu),
             ('Select Installation Source', MenuItem(self.select_sources)),
             ('Install OS', MenuItem(self.install_os)),
-            ('Select Installation Source', self.select_sources),
-            ('Install OS', self.install_os),
             #('Install Bootloader', self.install_bootloader),
         ]
 
