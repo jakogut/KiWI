@@ -98,6 +98,15 @@ class WindowsInstallApp(object):
 
     def install_os(self):
         pass
+        if not self.boot_part or not self.os_part \
+        or not self.source or not self.imageid:
+            return
+
+        confirmation = self.d.yesno('Install drive: {}\nInstallation Source: {}'.format(
+            self.drive, self.source) + '\n\nContinue installation?', width=40, height=15)
+
+        if confirmation == 'ok': self.extract_wim(self.source, self.imageid, self.os_part)
+
     def extract_wim(self, wimfile, imageid, target):
         r, w = os.pipe()
         process = subprocess.Popen(['sudo', '/usr/bin/wimlib-imagex', 'apply', wimfile, imageid, target], stdout=w, stderr=subprocess.PIPE)
