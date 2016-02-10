@@ -88,6 +88,11 @@ class WindowsInstallApp(object):
         p = subprocess.call('mkfs.ntfs -F {}' + self.drive)
 
     def select_sources(self):
+        code, path = self.d.inputbox('Input the path to your WIM', width=80)
+        if code == self.d.OK and path:
+            self.source = path
+            logging.info('Set installation source to {}'.format(path))
+
         pass
 
     def install_os(self):
