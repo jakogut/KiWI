@@ -12,6 +12,7 @@ import logging
 import logging.handlers
 logger = logging.getLogger()
 
+from .interface import MenuItem, Menu
 def detect_blockdevs():
 
     return devices
