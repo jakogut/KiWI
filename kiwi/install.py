@@ -103,7 +103,8 @@ class WindowsInstallApp(object):
                 sleep(3)
                 return
 
-        p = subprocess.call('mkfs.ntfs -F {}' + self.drive)
+        confirmation = self.d.inputbox('This will erase ALL data on %s' % tag + \
+            '\n\nType \'YES\' to continue', width=40, height=15)
 
     def select_sources(self):
         code, path = self.d.inputbox('Input the path to your WIM', width=80)
