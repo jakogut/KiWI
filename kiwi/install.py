@@ -164,6 +164,10 @@ class WindowsInstallApp(object):
         if code != self.d.OK: return
         self.source_uri = server
 
+    def prepare_source(self):
+        self.get_source_uri()
+        mount(self.source_uri, self.source_dir, mkdir=True)
+
 
     def extract_wim(self, wimfile, imageid, target):
         r, w = os.pipe()
