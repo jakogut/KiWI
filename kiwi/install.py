@@ -36,7 +36,7 @@ class WindowsInstallApp(object):
         source_submenu = Menu(self.d, source_items, 'Select Installation Source')
 
         partitioning_items = [
-            ('Auto-Prepare (erases the ENTIRE storage drive)', self.auto_partition),
+            ('Auto-Prepare (erases the ENTIRE storage drive)', MenuItem(self.auto_partition)),
         ]
 
         partitioning_submenu = Menu(self.d, partitioning_items, title='Partition Drives')
