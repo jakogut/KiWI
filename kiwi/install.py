@@ -26,6 +26,15 @@ class WindowsInstallApp(object):
 
         networking_submenu = Menu(self.d, networking_items, 'Network Configuration')
 
+        self.source_dir = '/mnt/source'
+
+        source_items = [
+            ('Block Device (USB, CD/DVD, etc.)', None),
+            ('Network (NFS)', MenuItem(self.prepare_source)),
+        ]
+
+        source_submenu = Menu(self.d, source_items, 'Select Installation Source')
+
         partitioning_items = [
             ('Auto-Prepare (erases the ENTIRE storage drive)', self.auto_partition),
         ]
