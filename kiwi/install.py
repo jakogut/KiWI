@@ -116,12 +116,35 @@ class WindowsInstallApp(object):
         pass
         if not self.boot_part or not self.os_part \
         or not self.source or not self.imageid:
+    def auto_partition(self):
+        self.select_disk()
+        if not hasattr(self, 'install_drive'):
             return
 
-        confirmation = self.d.yesno('Install drive: {}\nInstallation Source: {}'.format(
-            self.drive, self.source) + '\n\nContinue installation?', width=40, height=15)
+        self.logger.info('Partitioning drive ' + self.install_drive)
 
-        if confirmation == 'ok': self.extract_wim(self.source, self.imageid, self.os_part)
+        self.uefi = self.supports_uefi()
+        if self.uefi: self.logger.info('Detected machine booted with UEFI, using GPT')
+
+        partition_table = 'msdos' if not self.uefi else 'gpt'
+        subprocess.check_call(['parted', '-s', self.install_drive,
+                               'mklabel', partition_table])
+        if self.uefi:
+            subprocess.check_call(['parted', '-s', self.install_drive, '--',
+                                   'mkpart', 'ESP', 'fat32', '2048s', '512',
+                                   'mkpart', 'Windows', 'NTFS', '512', '-1s',
+                                   'set', '1', 'esp', 'on'])
+
+            self.boot_part = self.install_drive + '1'
+            self.system_part = self.install_drive + '2'
+
+        else:
+            subprocess.check_call(['parted', '-s', self.install_drive, '--',
+                                   'mkpart', 'primary', 'NTFS', '2048s', '-1s',
+                                   'set', '1', 'boot', 'on'])
+
+            self.system_part = self.install_drive + '1'
+
 
     def extract_wim(self, wimfile, imageid, target):
         r, w = os.pipe()
