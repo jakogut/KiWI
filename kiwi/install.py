@@ -12,7 +12,9 @@ import logging
 import logging.handlers
 logger = logging.getLogger()
 
-from .interface import MenuItem, Menu
+from .interface import *
+from .mount import *
+
 
 class WindowsInstallApp(object):
     def __init__(self):
