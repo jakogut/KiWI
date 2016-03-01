@@ -96,10 +96,12 @@ class WindowsInstallApp(object):
             #    sleep(3)
             #    return
 
-    def format_partitions(self):
-        if not self.drive:
-            logging.error('Cannot format with unpartitioned drive')
-            return
+            import stat
+            mode = os.stat(tag).st_mode
+            if not stat.S_ISBLK(mode):
+                self.d.infobox('File is not a block device.')
+                sleep(3)
+                return
 
         p = subprocess.call('mkfs.ntfs -F {}' + self.drive)
 
