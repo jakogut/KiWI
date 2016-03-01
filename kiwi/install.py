@@ -148,6 +148,16 @@ class WindowsInstallApp(object):
 
             self.system_part = self.install_drive + '1'
 
+    def mount_partitions():
+        self.system_dir = '/mnt/system'
+        mount(self.system_part, self.system_dir, mkdir=True)
+
+        if self.uefi:
+            self.boot_dir = '/mnt/boot'
+            mount(self.boot_part, self.boot_dir, mkdir=True)
+
+        self.logger.info('Mounted partitions successfully')
+
 
     def extract_wim(self, wimfile, imageid, target):
         r, w = os.pipe()
