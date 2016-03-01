@@ -7,17 +7,20 @@ import sys, os
 import glob
 import re
 import subprocess
+from time import sleep
 
 import logging
 import logging.handlers
-logger = logging.getLogger()
 
 from .interface import *
 from .mount import *
 
+logger = logging.getLogger()
 
 class WindowsInstallApp(object):
     def __init__(self):
+        self.logger = logging.getLogger(__name__)
+
         self.d = Dialog(dialog='dialog')
         self.d.set_background_title('KiWI: Killer Windows Installer')
 
@@ -80,7 +83,6 @@ class WindowsInstallApp(object):
         self.devices = devices
 
     def select_disk(self):
-    def auto_partition(self):
         self.detect_blockdevs()
 
         entries = [tuple([path, '-']) for path, _ in self.devices] + [('OTHER', '+')]
@@ -105,20 +107,15 @@ class WindowsInstallApp(object):
 
         confirmation = self.d.inputbox('This will erase ALL data on %s' % tag + \
             '\n\nType \'YES\' to continue', width=40, height=15)
+        if confirmation is not 'YES': return
 
-    def select_sources(self):
-        code, path = self.d.inputbox('Input the path to your WIM', width=80)
-        if code == self.d.OK and path:
-            self.source = path
-            logging.info('Set installation source to {}'.format(path))
+        self.install_drive = tag
 
-    def mount_partitions(boot, os):
-        pass
+    def supports_uefi(self):
+        p = subprocess.Popen(['efivar', '-l'])
+        uefi = True if p.returncode == 0 else False
+        return uefi
 
-    def install_os(self):
-        pass
-        if not self.boot_part or not self.os_part \
-        or not self.source or not self.imageid:
     def auto_partition(self):
         self.select_disk()
         if not hasattr(self, 'install_drive'):
@@ -168,37 +165,40 @@ class WindowsInstallApp(object):
         self.get_source_uri()
         mount(self.source_uri, self.source_dir, mkdir=True)
 
+    def install_os(self):
+        self.source, self.imageid, self.os_part = (self.source_dir + '/srv/nfs4/win7_x64_sp1.wim', '2', '/mnt/dst/')
+        self.boot_part = '/dev/null'
+
+        self.extract_wim(self.source, self.imageid, self.os_part)
 
     def extract_wim(self, wimfile, imageid, target):
         r, w = os.pipe()
-        process = subprocess.Popen(['sudo', '/usr/bin/wimlib-imagex', 'apply', wimfile, imageid, target], stdout=w, stderr=subprocess.PIPE)
-
-        #self.d.progressbox(fd=r, text='Applying WIM to target...', width=80, height=20)
+        process = subprocess.Popen(['wimlib-imagex', 'apply', wimfile, imageid, target],
+            stdout=w, stderr=w)
 
         filp = os.fdopen(r)
 
+        self.logger.info('Applying WIM...')
+
         while True:
             line = filp.readline()
-            logging.info('Ignoring line: {}'.format(line))
             if 'Creating files' in line: break
 
         for stage in ['Creating files', 'Extracting file data', 'Applying metadata to files']:
+            self.logger.info(stage)
+
             self.d.gauge_start(text=stage, width=80, percent=0)
 
             while(True):
                 line = filp.readline()
-                logging.info(line)
                 if stage not in line: continue
                 pct = re.search(r'\d+%', line).group(0)[:-1]
 
                 if pct:
                     self.d.gauge_update(int(pct))
-                    logging.info('{}: {}%'.format(stage, pct))
                     if pct == '100': break
 
-
-        exit_code = self.d.gauge_stop()
-        process.communicate()
+            exit_code = self.d.gauge_stop()
 
     def install_bootloader(self):
         pass
@@ -217,6 +217,7 @@ import sys
 sys.excepthook = handle_exception
 
 if __name__ == '__main__':
+    logger = logging.getLogger()
     logger.setLevel(logging.INFO)
 
     fh = logging.FileHandler('/tmp/kiwi-install.log')
