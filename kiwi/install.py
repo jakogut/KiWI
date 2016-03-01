@@ -79,15 +79,22 @@ class WindowsInstallApp(object):
 
         self.devices = devices
 
+    def select_disk(self):
     def auto_partition(self):
         self.detect_blockdevs()
 
-        entries = [tuple([path, '-']) for path, _ in self.devices]
-        code, tag = self.d.menu('Choose an installation drive', choices=entries)
+        entries = [tuple([path, '-']) for path, _ in self.devices] + [('OTHER', '+')]
+        code, tag = self.d.menu('Choose an installation drive', choices=entries, default_item='/sys/block/sdb')
+        if code != self.d.OK: return
 
-        if code == self.d.OK: self.drive = tag
+        if tag == 'OTHER':
+            code, tag = self.d.inputbox('Enter a path to a block device')
+            if code != self.d.OK: return
 
-        logging.info('Beginning installation on drive {}'.format(self.drive))
+            #if not os.path.isfile(tag):
+            #    self.d.infobox('File or path does not exist.', width=40)
+            #    sleep(3)
+            #    return
 
     def format_partitions(self):
         if not self.drive:
