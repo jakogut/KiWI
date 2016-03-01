@@ -158,6 +158,9 @@ class WindowsInstallApp(object):
 
         self.logger.info('Mounted partitions successfully')
 
+    def get_source_uri(self):
+        code, server = self.d.inputbox('Enter an NFS server', width=40)
+
 
     def extract_wim(self, wimfile, imageid, target):
         r, w = os.pipe()
