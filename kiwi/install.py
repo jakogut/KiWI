@@ -161,6 +161,9 @@ class WindowsInstallApp(object):
     def get_source_uri(self):
         code, server = self.d.inputbox('Enter an NFS server', width=40)
 
+        if code != self.d.OK: return
+        self.source_uri = server
+
 
     def extract_wim(self, wimfile, imageid, target):
         r, w = os.pipe()
