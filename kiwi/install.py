@@ -44,7 +44,7 @@ class WindowsInstallApp(object):
         main_menu_items = [
             ('Configure Networking', networking_submenu),
             ('Prepare Storage Device', partitioning_submenu),
-            ('Select Installation Source', MenuItem(self.select_sources)),
+            ('Select Installation Source', source_submenu),
             ('Install OS', MenuItem(self.install_os)),
             #('Install Bootloader', self.install_bootloader),
         ]
