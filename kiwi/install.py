@@ -54,7 +54,9 @@ class WindowsInstallApp(object):
         while self.running: self.main_menu.run(ret=self.exit())
 
     def launch_wicd(self):
-        subprocess.call('wicd-curses', shell=True)
+        rc = subprocess.call('wicd-curses', shell=True)
+        test = subprocess.call(['ping', '-c 2', '-i 0.2', 'google.com'], stdout=subprocess.PIPE)
+        if rc == 0 and test == 0: self.main_menu.advance()
 
     def detect_blockdevs(self):
         def blockdev_size(device):
