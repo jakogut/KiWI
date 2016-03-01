@@ -33,3 +33,16 @@ class Menu(MenuItem):
                 func.run(ret=self.run)
             else: func()
 
+class StatefulMenu(Menu):
+    def __init__(self, dialog, items, title, position=0):
+        super().__init__(dialog, items, title)
+        self.position = position
+
+    def advance(self):
+        self.position += 1
+
+    def function(self):
+        code, tag = self.d.menu(self.title, choices=self.entries,
+            default_item=self.entries[self.position][0])
+
+        if code == self.d.OK: self._dispatch(tag)
