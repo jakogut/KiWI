@@ -50,8 +50,8 @@ class WindowsInstallApp(object):
         ]
 
         self.running = True
-        main_menu = Menu(self.d, main_menu_items, title='Main Menu')
-        while self.running: main_menu.run(ret=self.exit())
+        self.main_menu = StatefulMenu(self.d, main_menu_items, title='Main Menu')
+        while self.running: self.main_menu.run(ret=self.exit())
 
     def launch_wicd(self):
         subprocess.call('wicd-curses', shell=True)
