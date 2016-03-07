@@ -1,3 +1,8 @@
+import logging
+logger = logging.getLogger()
+
+import subprocess
+
 def mountpoint(path):
     try:
         subprocess.check_call(['mountpoint', path],
