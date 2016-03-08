@@ -68,7 +68,7 @@ class WindowsInstallApp(object):
 
             return (float(nr_sectors)*float(sect_size))/(1024.0*1024.0*1024.0)
 
-        dev_pattern = ['sd.*', 'mmcblk*']
+        dev_pattern = ['hd.*', 'sd.*', 'mmcblk.*']
 
         devices = []
         for device in glob.glob('/sys/block/*'):
