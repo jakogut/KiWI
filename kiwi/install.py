@@ -97,41 +97,33 @@ class WindowsInstallApp(object):
             self.main_menu.advance()
 
     def detect_blockdevs(self):
-        def blockdev_size(device):
-            nr_sectors = open(device+'/size').read().rstrip('\n')
-            sect_size = open(device+'/queue/hw_sector_size').read().rstrip('\n')
-
-            return (float(nr_sectors)*float(sect_size))/(1024.0*1024.0*1024.0)
-
-        dev_pattern = ['hd.*', 'sd.*', 'mmcblk.*']
-
         devices = []
-        for device in glob.glob('/sys/block/*'):
-            for pattern in dev_pattern:
-                if re.compile(pattern).match(os.path.basename(device)):
-                    devices.append(tuple([device, blockdev_size(device)]))
+        p = subprocess.run(['lsblk', '-Ppd'], stdout=subprocess.PIPE)
+        for line in p.stdout.decode('UTF-8').split('\n'):
+            dev = {}
+            for p in line.split():
+                pair = p.split('=')
+                dev[pair[0]] = pair[1][1:-1]
+
+            # We don't need read-only devices
+            if 'RO' not in dev or dev['RO'] == '1': continue
+            devices.append(dev)
 
         self.d.msgbox('Detected Devices:\n\n' + '\n'.join(
-            [' '.join([path, '%.2f GB' % size]) for path, size in devices]),
-            width=40, height=10)
+            [' '.join([dev['NAME'], dev['SIZE']]) for dev in devices]))
 
         self.devices = devices
 
     def select_disk(self):
         self.detect_blockdevs()
 
-        entries = [tuple([path, '-']) for path, _ in self.devices] + [('OTHER', '+')]
+        entries = [tuple([device['NAME'], '-']) for device in self.devices] + [('OTHER', '+')]
         code, tag = self.d.menu('Choose an installation drive', choices=entries, default_item='/sys/block/sdb')
         if code != self.d.OK: return
 
         if tag == 'OTHER':
             code, tag = self.d.inputbox('Enter a path to a block device')
             if code != self.d.OK: return
-
-            #if not os.path.isfile(tag):
-            #    self.d.infobox('File or path does not exist.', width=40)
-            #    sleep(3)
-            #    return
 
             import stat
             mode = os.stat(tag).st_mode
