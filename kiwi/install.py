@@ -118,7 +118,7 @@ class WindowsInstallApp(object):
         self.detect_blockdevs()
 
         entries = [tuple([device['NAME'], '-']) for device in self.devices] + [('OTHER', '+')]
-        code, tag = self.d.menu('Choose an installation drive', choices=entries, default_item='/sys/block/sdb')
+        code, tag = self.d.menu('Choose an installation drive', choices=entries)
         if code != self.d.OK: return
 
         if tag == 'OTHER':
@@ -179,10 +179,11 @@ class WindowsInstallApp(object):
             self.system_part = self.install_drive + '1'
 
     def auto_format(self):
-        call = ['mkfs.ntfs', '-c', str(self.cluster_size), self.system_part]
+        call = ['mkfs.ntfs', '-c', str(self.cluster_size)]
 
         if self.fs_compression: call.append('-C')
         if self.quick_format: call.append('-Q')
+        call.append(self.system_part)
 
         subprocess.check_call(call)
 
