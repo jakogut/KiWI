@@ -24,6 +24,10 @@ class WindowsInstallApp(object):
         self.boot_part = ''
         self.system_part = ''
 
+        self.cluster_size = 4096
+        self.fs_compression = False
+        self.quick_format = True
+
         self.d = Dialog(dialog='dialog')
         self.d.set_background_title('KiWI: Killer Windows Installer')
 
