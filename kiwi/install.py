@@ -51,12 +51,20 @@ class WindowsInstallApp(object):
 
         partitioning_submenu = Menu(self.d, partitioning_items, title='Partition Drives')
 
+        advanced_items = [
+            ('Filesystem options', MenuItem(self.fs_options)),
+        ]
+
+        advanced_submenu = Menu(self.d, advanced_items, title='Advanced Options')
+
         main_menu_items = [
             ('Configure Networking', networking_submenu),
             ('Prepare Storage Device', partitioning_submenu),
             ('Select Installation Source', source_submenu),
             ('Install OS', MenuItem(self.install_os)),
             #('Install Bootloader', self.install_bootloader),
+            ('---', MenuItem(separator=True)),
+            ('Advanced Options', advanced_submenu),
         ]
 
         self.running = True
