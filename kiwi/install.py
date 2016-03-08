@@ -150,6 +150,13 @@ class WindowsInstallApp(object):
 
             self.system_part = self.install_drive + '1'
 
+    def auto_format(self):
+        cluster_size = 4096
+        subprocess.check_call(['mkfs.ntfs', '-Q', '-c', cluster_size, self.system_part])
+        if self.uefi: subprocess.check_call(['mkfs.msdos', '-F32', self.boot_part])
+
+        self.logger.info('Sucessfully partitioned installation drive')
+
     def mount_partitions():
         self.system_dir = '/mnt/system'
         mount(self.system_part, self.system_dir, mkdir=True)
