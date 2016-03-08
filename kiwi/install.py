@@ -89,10 +89,17 @@ class WindowsInstallApp(object):
             if tag in selected: setattr(self, var_name, True)
             else: setattr(self, var_name, False)
 
-    def launch_wicd(self):
-        rc = subprocess.call('wicd-curses', shell=True)
-        test = subprocess.call(['ping', '-c 2', '-i 0.2', 'google.com'], stdout=subprocess.PIPE)
-        if rc == 0 and test == 0: self.main_menu.advance()
+    def test_network(self):
+        return True if subprocess.call(
+            ['ping', '-c 2', '-i 0.2', 'google.com'],
+            stdout=subprocess.PIPE) == 0 else False
+
+    def configure_network(self):
+        if not self.test_network():
+            rc = subprocess.call('nmtui', shell=True)
+        else:
+            self.d.msgbox('Network Configuration Successful', width=40, title='Network Status')
+            self.main_menu.advance()
 
     def detect_blockdevs(self):
         def blockdev_size(device):
