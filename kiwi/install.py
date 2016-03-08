@@ -186,6 +186,7 @@ class WindowsInstallApp(object):
         self.boot_part = '/dev/null'
 
         self.extract_wim(self.source, self.imageid, self.os_part)
+        self.install_bootloader()
 
     def extract_wim(self, wimfile, imageid, target):
         r, w = os.pipe()
@@ -198,6 +199,7 @@ class WindowsInstallApp(object):
 
         while True:
             line = filp.readline()
+            self.logger.info(line)
             if 'Creating files' in line: break
 
         for stage in ['Creating files', 'Extracting file data', 'Applying metadata to files']:
@@ -217,7 +219,11 @@ class WindowsInstallApp(object):
             exit_code = self.d.gauge_stop()
 
     def install_bootloader(self):
-        pass
+        if not self.uefi:
+            self.write_mbr()
+
+    def write_mbr(self):
+        subprocess.check_call('ms-sys', '-7', self.install_drive)
 
     def exit(self):
         self.running = False
