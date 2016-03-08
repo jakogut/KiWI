@@ -31,11 +31,6 @@ class WindowsInstallApp(object):
         self.d = Dialog(dialog='dialog')
         self.d.set_background_title('KiWI: Killer Windows Installer')
 
-        networking_items = [
-            ('Connect to Wireless Network', self.launch_wicd)]
-
-        networking_submenu = Menu(self.d, networking_items, 'Network Configuration')
-
         self.source_dir = '/mnt/source'
 
         source_items = [
@@ -58,7 +53,7 @@ class WindowsInstallApp(object):
         advanced_submenu = Menu(self.d, advanced_items, title='Advanced Options')
 
         main_menu_items = [
-            ('Configure Networking', networking_submenu),
+            ('Configure Networking', MenuItem(self.configure_network)),
             ('Prepare Storage Device', partitioning_submenu),
             ('Select Installation Source', source_submenu),
             ('Install OS', MenuItem(self.install_os)),
