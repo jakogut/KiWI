@@ -110,6 +110,7 @@ class WindowsInstallApp(object):
         if confirmation[1] is not 'YES': return
 
         self.install_drive = tag
+        self.logger.info('Block device % selected for installation' % self.install_drive)
 
     def supports_uefi(self):
         p = subprocess.Popen(['efivar', '-l'])
