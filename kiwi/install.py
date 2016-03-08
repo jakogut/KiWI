@@ -71,6 +71,24 @@ class WindowsInstallApp(object):
         self.main_menu = StatefulMenu(self.d, main_menu_items, title='Main Menu')
         while self.running: self.main_menu.run(ret=self.exit())
 
+    def fs_options(self):
+        choices = [
+            ('Quick Format',        '',             'quick_format'),
+            ('NTFS Compression',    '',             'fs_compression'),
+        ]
+
+        code, selected = self.d.checklist('Filesystem Options', choices=[
+            (choice[0], choice[1], getattr(self, choice[2])) for choice in choices])
+
+        if code != self.d.OK: return
+
+        for item in choices:
+            tag = item[0]
+            var_name = item[2]
+
+            if tag in selected: setattr(self, var_name, True)
+            else: setattr(self, var_name, False)
+
     def launch_wicd(self):
         rc = subprocess.call('wicd-curses', shell=True)
         test = subprocess.call(['ping', '-c 2', '-i 0.2', 'google.com'], stdout=subprocess.PIPE)
