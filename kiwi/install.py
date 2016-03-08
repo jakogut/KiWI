@@ -156,7 +156,7 @@ class WindowsInstallApp(object):
 
     def auto_format(self):
         cluster_size = 4096
-        subprocess.check_call(['mkfs.ntfs', '-Q', '-c', cluster_size, self.system_part])
+        subprocess.check_call(['mkfs.ntfs', '-Q', '-c', str(cluster_size), self.system_part])
         if self.uefi: subprocess.check_call(['mkfs.msdos', '-F32', self.boot_part])
 
         self.logger.info('Sucessfully partitioned installation drive')
