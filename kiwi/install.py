@@ -42,7 +42,7 @@ class WindowsInstallApp(object):
         source_submenu = Menu(self.d, source_items, 'Select Installation Source')
 
         partitioning_items = [
-            ('Auto-Prepare (erases the ENTIRE storage drive)', MenuItem(self.auto_partition)),
+            ('Auto-Prepare (erases the ENTIRE storage drive)', MenuItem(self.auto_prepare)),
         ]
 
         partitioning_submenu = Menu(self.d, partitioning_items, title='Partition Drives')
@@ -119,6 +119,10 @@ class WindowsInstallApp(object):
         p = subprocess.Popen(['efivar', '-l'])
         uefi = True if p.returncode == 0 else False
         return uefi
+
+    def auto_prepare(self):
+        self.auto_partition()
+        self.auto_format()
 
     def auto_partition(self):
         self.select_disk()
