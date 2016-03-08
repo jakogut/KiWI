@@ -21,6 +21,9 @@ class WindowsInstallApp(object):
     def __init__(self):
         self.logger = logging.getLogger(__name__)
 
+        self.boot_part = ''
+        self.system_part = ''
+
         self.d = Dialog(dialog='dialog')
         self.d.set_background_title('KiWI: Killer Windows Installer')
 
