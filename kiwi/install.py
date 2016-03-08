@@ -107,7 +107,7 @@ class WindowsInstallApp(object):
 
         confirmation = self.d.inputbox('This will erase ALL data on %s' % tag + \
             '\n\nType \'YES\' to continue', width=40, height=15)
-        if confirmation is not 'YES': return
+        if confirmation[1] is not 'YES': return
 
         self.install_drive = tag
 
