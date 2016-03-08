@@ -126,6 +126,7 @@ class WindowsInstallApp(object):
 
         self.uefi = self.supports_uefi()
         if self.uefi: self.logger.info('Detected machine booted with UEFI, using GPT')
+        else: self.logger.info('UEFI not supported, creating DOS partition table')
 
         partition_table = 'msdos' if not self.uefi else 'gpt'
         subprocess.check_call(['parted', '-s', self.install_drive,
