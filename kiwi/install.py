@@ -21,6 +21,8 @@ class WindowsInstallApp(object):
     def __init__(self):
         self.logger = logging.getLogger(__name__)
 
+        self.uefi = False
+
         self.boot_part = ''
         self.system_part = ''
 
