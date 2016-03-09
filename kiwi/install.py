@@ -212,10 +212,10 @@ class WindowsInstallApp(object):
         mount(self.source_uri, self.source_dir, mkdir=True)
 
     def install_os(self):
-        self.source, self.imageid, self.os_part = (self.source_dir + '/srv/nfs4/win7_x64_sp1.wim', '2', '/mnt/dst/')
-        self.boot_part = '/dev/null'
+        self.mount_partitions()
+        self.source, self.imageid = (self.source_dir + '/srv/nfs4/win7_x64_sp1.wim', '2')
 
-        self.extract_wim(self.source, self.imageid, self.os_part)
+        self.extract_wim(self.source, self.imageid, self.system_dir)
         self.install_bootloader()
 
     def extract_wim(self, wimfile, imageid, target):
