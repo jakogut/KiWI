@@ -66,6 +66,7 @@ class WindowsInstallApp(object):
             ('Select Installation Source', source_submenu),
             ('Install OS', MenuItem(self.install_os)),
             #('Install Bootloader', self.install_bootloader),
+            ('Reboot', MenuItem(self.reboot)),
             ('---', MenuItem(separator=True)),
             ('Advanced Options', advanced_submenu),
         ]
@@ -73,6 +74,9 @@ class WindowsInstallApp(object):
         self.running = True
         self.main_menu = StatefulMenu(self.d, main_menu_items, title='Main Menu')
         while self.running: self.main_menu.run(ret=self.exit())
+
+    def reboot(self):
+        subprocess.check_call(['reboot'])
 
     def fs_options(self):
         choices = [
