@@ -29,5 +29,9 @@ def mount(src, dst, mkdir=False, force=False, bind=False, ro=False):
     if bind: options += ',bind'
     if ro:   options += ',ro'
 
-    subprocess.check_call(['mount', '-o', options, src, dst])
+    if options:
+        call.append('-o')
+        call.append(options)
+
+    subprocess.check_call(call)
 
