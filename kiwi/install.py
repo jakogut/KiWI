@@ -148,6 +148,8 @@ class WindowsInstallApp(object):
         self.auto_partition()
         self.auto_format()
 
+        self.main_menu.advance()
+
     def auto_partition(self):
         self.select_disk()
         if not hasattr(self, 'install_drive'):
@@ -210,6 +212,7 @@ class WindowsInstallApp(object):
     def prepare_source(self):
         self.get_source_uri()
         mount(self.source_uri, self.source_dir, mkdir=True)
+        self.main_menu.advance()
 
     def install_os(self):
         self.mount_partitions()
