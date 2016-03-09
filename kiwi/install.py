@@ -193,7 +193,7 @@ class WindowsInstallApp(object):
 
         self.logger.info('Sucessfully partitioned installation drive')
 
-    def mount_partitions():
+    def mount_partitions(self):
         self.system_dir = '/mnt/system'
         mount(self.system_part, self.system_dir, mkdir=True)
 
