@@ -94,7 +94,7 @@ class WindowsInstallApp(object):
 
     def test_network(self):
         return True if subprocess.call(
-            ['ping', '-c 2', '-i 0.2', 'google.com'],
+            ['ping', '-c 2', '-i 0.2', '8.8.8.8'],
             stdout=subprocess.PIPE) == 0 else False
 
     def configure_network(self):
