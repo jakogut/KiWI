@@ -36,8 +36,12 @@ class WindowsInstallApp(object):
         self.source_dir = '/mnt/source'
 
         source_items = [
-            ('Block Device (USB, CD/DVD, etc.)', None),
-            ('Network (NFS)', MenuItem(self.prepare_source)),
+            ('Network Filesystem (NFS)', MenuItem(self.prepare_nfs_source)),
+            #('Network Block Device (NBD)', MenuItem()),
+            ('SCP/SFTP (SSH)', MenuItem(self.prepare_sshfs_source)),
+            ('Block Device (USB, CD/DVD, etc.)', self.prepare_blk_source),
+            ('---', MenuItem(separator=True)),
+            ('OTHER (Path)', MenuItem(self.prepare_fs_source)),
         ]
 
         source_submenu = Menu(self.d, source_items, 'Select Installation Source')
@@ -210,15 +214,36 @@ class WindowsInstallApp(object):
 
         self.logger.info('Mounted partitions successfully')
 
-    def get_source_uri(self):
-        code, server = self.d.inputbox('Enter an NFS server', width=40)
-
+    def prepare_fs_source(self):
+        code, path = self.d.inputbox('Enter a UNIX path', width=40)
         if code != self.d.OK: return
-        self.source_uri = server
+        mount(path, self.source_dir, mkdir=True, bind=True)
+        self.select_source()
 
-    def prepare_source(self):
-        self.get_source_uri()
-        mount(self.source_uri, self.source_dir, mkdir=True)
+    def prepare_sshfs_source(self):
+        code, path = self.d.inputbox('Enter an SSHFS path, in the format user@server:/', width=40)
+        if code != self.d.OK: return
+        code, passwd = self.d.passwordbox('Enter the password', width=40)
+        if code != self.d.OK: return
+
+        subprocess.check_call(['mkdir', '-p', self.source_dir])
+        call = ['sshfs', path, self.source_dir, '-o', 'password_stdin']
+        p = subprocess.Popen(call, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+        p.communicate(input=passwd.encode('UTF-8'))
+        self.select_source()
+
+    def prepare_blk_source(self):
+        code, path = self.d.inputbox('Enter a block device path', width=40)
+        if code != self.d.OK: return
+        mount(path, self.source_dir, mkdir=True)
+        self.select_source()
+
+    def prepare_nfs_source(self):
+        code, path = self.d.inputbox('Enter an NFS server or share', width=40)
+        if code != self.d.OK: return
+        mount(path, self.source_dir, mkdir=True)
+        self.select_source()
+
         self.main_menu.advance()
 
     def install_os(self):
