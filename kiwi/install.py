@@ -72,6 +72,7 @@ class WindowsInstallApp(object):
         choices = [
             ('Quick Format',        '',             'quick_format'),
             ('NTFS Compression',    '',             'fs_compression'),
+            ('Force GPT/EFI',        '',             'uefi'),
         ]
 
         code, selected = self.d.checklist('Filesystem Options', choices=[
@@ -159,8 +160,12 @@ class WindowsInstallApp(object):
 
         self.logger.info('Partitioning drive ' + self.install_drive)
 
-        self.uefi = self.supports_uefi()
-        if self.uefi: self.logger.info('Detected machine booted with UEFI, using GPT')
+        if self.uefi is False:
+            self.uefi = self.supports_uefi()
+        else: uefi_forced = True
+
+        if self.uefi and not uefi_forced: self.logger.info('Detected machine booted with UEFI, using GPT')
+        elif self.uefi and uefi_forced: self.logger.info('UEFI install forced, using GPT')
         else: self.logger.info('UEFI not supported, creating DOS partition table')
 
         partition_table = 'msdos' if not self.uefi else 'gpt'
