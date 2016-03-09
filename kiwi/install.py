@@ -256,7 +256,7 @@ class WindowsInstallApp(object):
             self.write_mbr()
 
     def write_mbr(self):
-        subprocess.check_call('ms-sys', '-7', self.install_drive)
+        subprocess.check_call(['ms-sys', '-7', self.install_drive])
 
     def exit(self):
         self.running = False
