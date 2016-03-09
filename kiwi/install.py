@@ -14,6 +14,7 @@ import logging.handlers
 
 from .interface import *
 from .mount import *
+from .wimlib import wiminfo
 
 logger = logging.getLogger()
 
@@ -244,11 +245,28 @@ class WindowsInstallApp(object):
         mount(path, self.source_dir, mkdir=True)
         self.select_source()
 
+    def select_source(self):
+        discovered_wims = glob.glob(self.source_dir + '**/*.wim', recursive=True)
+
+        entries = [tuple([wim, '-']) for wim in discovered_wims]
+        code, tag = self.d.menu('Choose a WIM', choices=entries)
+        if code == self.d.OK: self.image_path = tag
+        else: return
+
+        image_info = wiminfo(self.image_path)
+        entries = [tuple([image['Index'],
+            image['Display Name'] + ' ' + image['Architecture']])
+            for image in image_info]
+
+        code, tag = self.d.menu('Choose an image', choices=entries)
+        if code == self.d.OK: self.image_index = tag
+        else: return
+
         self.main_menu.advance()
 
     def install_os(self):
         self.mount_partitions()
-        self.source, self.imageid = (self.source_dir + '/srv/nfs4/win7_x64_sp1.wim', '2')
+        self.source, self.imageid = (self.image, self.image_index)
 
         self.extract_wim(self.source, self.imageid, self.system_dir)
         self.install_bootloader()
