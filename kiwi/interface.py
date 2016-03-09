@@ -55,5 +55,5 @@ class StatefulMenu(Menu):
             default_item=self.entries[self.position][0])
 
         if code == self.d.OK:
-            self.position = int(tag) - 1
+            if tag != separator_tag: self.position = int(tag) - 1
             self._dispatch(tag)
