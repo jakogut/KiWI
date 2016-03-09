@@ -268,9 +268,7 @@ class WindowsInstallApp(object):
 
     def install_os(self):
         self.mount_partitions()
-        self.source, self.imageid = (self.image, self.image_index)
-
-        self.extract_wim(self.source, self.imageid, self.system_dir)
+        self.extract_wim(self.image_path, self.image_index, self.system_dir)
         self.install_bootloader()
 
     def extract_wim(self, wimfile, imageid, target):
