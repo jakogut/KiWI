@@ -33,7 +33,7 @@ class WindowsInstallApp(object):
         self.d = Dialog(dialog='dialog')
         self.d.set_background_title('KiWI: Killer Windows Installer')
 
-        self.source_dir = '/mnt/source'
+        self.source_dir = '/mnt/source/'
 
         source_items = [
             ('Network Filesystem (NFS)', MenuItem(self.prepare_nfs_source)),
