@@ -284,7 +284,7 @@ class WindowsInstallApp(object):
 
         while True:
             line = filp.readline()
-            self.logger.info(line)
+            self.logger.debug('Discarding line from WIM STDOUT: {}'.format(line))
             if 'Creating files' in line: break
 
         for stage in ['Creating files', 'Extracting file data', 'Applying metadata to files']:
@@ -292,6 +292,7 @@ class WindowsInstallApp(object):
 
             while(True):
                 line = filp.readline()
+                self.logger.debug('Wim extraction STDOUT: {}'.format(line))
                 if stage not in line: continue
                 pct = re.search(r'\d+%', line).group(0)[:-1]
 
@@ -324,7 +325,7 @@ sys.excepthook = handle_exception
 
 if __name__ == '__main__':
     logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
+    logger.setLevel(logging.DEBUG)
 
     fh = logging.FileHandler('/tmp/kiwi-install.log')
     logger.addHandler(fh)
