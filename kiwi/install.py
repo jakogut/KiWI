@@ -142,17 +142,23 @@ class WindowsInstallApp(object):
         return uefi
 
     def auto_prepare(self):
+        self.select_disk()
+
+        if not hasattr(self, 'install_drive'):
+            return
+
+        partitions = glob.glob(self.install_drive + '*')
+        for part in partitions:
+            logger.debug('Unmounting partition {}'.format(part))
+            try: unmount(part)
+            except CalledProcessError: pass
+
         if self.auto_partition() != self.d.OK: return
         if self.auto_format() != self.d.OK: return
 
         self.main_menu.advance()
 
     def auto_partition(self):
-        self.select_disk()
-        if not hasattr(self, 'install_drive'):
-            return
-
-        self.logger.info('Partitioning drive ' + self.install_drive)
 
         if self.uefi is False:
             self.uefi = self.supports_uefi()
