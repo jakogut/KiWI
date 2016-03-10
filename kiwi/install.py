@@ -153,7 +153,7 @@ class WindowsInstallApp(object):
         for part in partitions:
             logger.debug('Unmounting partition {}'.format(part))
             try: unmount(part)
-            except CalledProcessError: pass
+            except subprocess.CalledProcessError: pass
 
         if self.auto_partition() != self.d.OK: return
         if self.auto_format() != self.d.OK: return
