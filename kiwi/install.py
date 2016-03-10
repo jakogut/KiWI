@@ -67,7 +67,7 @@ class WindowsInstallApp(object):
         choices = [
             ('Quick Format',        '',             'quick_format'),
             ('NTFS Compression',    '',             'fs_compression'),
-            ('Force GPT/EFI',        '',             'uefi'),
+            ('Force GPT/EFI',       '',             'uefi'),
         ]
 
         code, selected = self.d.checklist('Filesystem Options', choices=[
