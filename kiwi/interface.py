@@ -11,8 +11,11 @@ class MenuItem(object):
         if ret: ret()
 
 class Menu(MenuItem):
-    def __init__(self, dialog, items, title):
+    def __init__(self, dialog, items, title, ret='default'):
         self.d = dialog
+
+        if ret == 'default': self.ret = self.run
+        else: self.ret = None
 
         super().__init__(func=self.function)
 
@@ -39,7 +42,7 @@ class Menu(MenuItem):
         elif tag in self.dispatch_table:
             func = self.dispatch_table[tag]
             if isinstance(func, MenuItem):
-                func.run(ret=self.run)
+                func.run(ret=self.ret)
             else: func()
 
 class StatefulMenu(Menu):

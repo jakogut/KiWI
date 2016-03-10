@@ -24,7 +24,6 @@ class WindowsInstallApp(object):
 
         self.uefi = False
 
-        self.install_drive = ''
         self.boot_part = ''
         self.system_part = ''
 
