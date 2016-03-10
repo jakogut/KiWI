@@ -223,7 +223,7 @@ class WindowsInstallApp(object):
             ('OTHER (Path)', MenuItem(self.prepare_fs_source)),
         ]
 
-        Menu(self.d, source_items, 'Select Installation Source').run()
+        Menu(self.d, source_items, 'Select Installation Source', ret=None).run()
 
     def prepare_fs_source(self):
         code, path = self.d.inputbox('Enter a UNIX path', width=40)
