@@ -28,6 +28,9 @@ class WindowsInstallApp(object):
         self.boot_part = ''
         self.system_part = ''
 
+        self.boot_dir = '/mnt/boot'
+        self.system_dir = '/mnt/system'
+
         self.cluster_size = 4096
         self.fs_compression = False
         self.quick_format = True
@@ -204,11 +207,9 @@ class WindowsInstallApp(object):
         return self.d.OK
 
     def mount_partitions(self):
-        self.system_dir = '/mnt/system'
         mount(self.system_part, self.system_dir, mkdir=True)
 
         if self.uefi:
-            self.boot_dir = '/mnt/boot'
             mount(self.boot_part, self.boot_dir, mkdir=True)
 
         self.logger.info('Mounted partitions successfully')
