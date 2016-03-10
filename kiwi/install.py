@@ -290,8 +290,6 @@ class WindowsInstallApp(object):
             if 'Creating files' in line: break
 
         for stage in ['Creating files', 'Extracting file data', 'Applying metadata to files']:
-            self.logger.info(stage)
-
             self.d.gauge_start(text=stage, width=80, percent=0)
 
             while(True):
