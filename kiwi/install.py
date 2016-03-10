@@ -37,23 +37,6 @@ class WindowsInstallApp(object):
 
         self.source_dir = '/mnt/source/'
 
-        source_items = [
-            ('Network Filesystem (NFS)', MenuItem(self.prepare_nfs_source)),
-            #('Network Block Device (NBD)', MenuItem()),
-            ('SCP/SFTP (SSH)', MenuItem(self.prepare_sshfs_source)),
-            ('Block Device (USB, CD/DVD, etc.)', self.prepare_blk_source),
-            ('---', MenuItem(separator=True)),
-            ('OTHER (Path)', MenuItem(self.prepare_fs_source)),
-        ]
-
-        source_submenu = Menu(self.d, source_items, 'Select Installation Source')
-
-        partitioning_items = [
-            ('Auto-Prepare (erases the ENTIRE storage drive)', MenuItem(self.auto_prepare)),
-        ]
-
-        partitioning_submenu = Menu(self.d, partitioning_items, title='Partition Drives')
-
         advanced_items = [
             ('Filesystem options', MenuItem(self.fs_options)),
         ]
@@ -62,8 +45,8 @@ class WindowsInstallApp(object):
 
         main_menu_items = [
             ('Configure Networking', MenuItem(self.configure_network)),
-            ('Prepare Storage Device', partitioning_submenu),
-            ('Select Installation Source', source_submenu),
+            ('Prepare Storage Device', MenuItem(self.auto_prepare)),
+            ('Select Installation Source', MenuItem(self.prepare_source)),
             ('Install OS', MenuItem(self.install_os)),
             #('Install Bootloader', self.install_bootloader),
             ('Reboot', MenuItem(self.reboot)),
@@ -220,6 +203,18 @@ class WindowsInstallApp(object):
             mount(self.boot_part, self.boot_dir, mkdir=True)
 
         self.logger.info('Mounted partitions successfully')
+
+    def prepare_source(self):
+        source_items = [
+            ('Network Filesystem (NFS)', MenuItem(self.prepare_nfs_source)),
+            #('Network Block Device (NBD)', MenuItem()),
+            ('SCP/SFTP (SSH)', MenuItem(self.prepare_sshfs_source)),
+            ('Block Device (USB, CD/DVD, etc.)', self.prepare_blk_source),
+            ('---', MenuItem(separator=True)),
+            ('OTHER (Path)', MenuItem(self.prepare_fs_source)),
+        ]
+
+        Menu(self.d, source_items, 'Select Installation Source').run()
 
     def prepare_fs_source(self):
         code, path = self.d.inputbox('Enter a UNIX path', width=40)
