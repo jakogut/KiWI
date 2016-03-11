@@ -8,6 +8,7 @@ import glob
 import re
 import subprocess
 from time import sleep
+import shutil
 
 import logging
 import logging.handlers
@@ -30,6 +31,7 @@ class WindowsInstallApp(object):
         self.boot_dir = '/mnt/boot'
         self.system_dir = '/mnt/system'
 
+        self.disk_signature = '4D34B30F'
         self.cluster_size = 4096
         self.fs_compression = False
         self.quick_format = True
@@ -60,7 +62,12 @@ class WindowsInstallApp(object):
         self.main_menu = StatefulMenu(self.d, main_menu_items, title='Main Menu')
         while self.running: self.main_menu.run(ret=self.exit())
 
+    def sync(self):
+        subprocess.check_call(['sync'])
+
+
     def reboot(self):
+        self.sync()
         subprocess.check_call(['reboot'])
 
     def fs_options(self):
@@ -139,7 +146,7 @@ class WindowsInstallApp(object):
         return self.d.OK
 
     def supports_uefi(self):
-        p = subprocess.Popen(['efivar', '-l'])
+        p = subprocess.Popen(['efivar', '-l'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         uefi = True if p.returncode == 0 else False
         return uefi
 
@@ -148,6 +155,9 @@ class WindowsInstallApp(object):
 
         if not hasattr(self, 'install_drive'):
             return
+
+        for dir in [self.system_dir, self.boot_dir]:
+            if mountpoint(dir): unmount(dir)
 
         partitions = glob.glob(self.install_drive + '*')
         for part in partitions:
@@ -192,24 +202,24 @@ class WindowsInstallApp(object):
         return self.d.OK
 
     def auto_format(self):
-        call = ['mkfs.ntfs', '-c', str(self.cluster_size)]
+        call = ['mkfs.ntfs']
+
+        call.append('-c')
+        call.append(str(self.cluster_size))
 
         if self.fs_compression: call.append('-C')
         if self.quick_format: call.append('-Q')
         call.append(self.system_part)
 
-        subprocess.check_call(call)
+        subprocess.check_call(call, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        if self.uefi: subprocess.check_call(['mkfs.msdos', '-F32', self.boot_part])
+        if self.uefi: subprocess.check_call(['mkfs.msdos', '-F32', self.boot_part],
+            stdout = subprocess.PIPE, stderr=subprocess.PIPE)
 
         self.logger.info('Sucessfully partitioned installation drive')
         return self.d.OK
 
     def mount_partitions(self):
-        mount(self.system_part, self.system_dir, mkdir=True)
-
-        if self.uefi:
-            mount(self.boot_part, self.boot_dir, mkdir=True)
 
         self.logger.info('Mounted partitions successfully')
 
@@ -275,8 +285,9 @@ class WindowsInstallApp(object):
         self.main_menu.advance()
 
     def install_os(self):
-        self.mount_partitions()
-        self.extract_wim(self.image_path, self.image_index, self.system_dir)
+        self.extract_wim(self.image_path, self.image_index, self.system_part)
+        self.sync()
+
         self.install_bootloader()
         self.main_menu.advance()
 
@@ -294,7 +305,7 @@ class WindowsInstallApp(object):
             self.logger.debug('Discarding line from WIM STDOUT: {}'.format(line))
             if 'Creating files' in line: break
 
-        for stage in ['Creating files', 'Extracting file data', 'Applying metadata to files']:
+        for stage in ['Creating files', 'Extracting file data']:
             self.d.gauge_start(text=stage, width=80, percent=0)
 
             while(True):
@@ -312,9 +323,19 @@ class WindowsInstallApp(object):
     def install_bootloader(self):
         if not self.uefi:
             self.write_mbr()
+            mount(self.system_part, self.system_dir, mkdir=True)
+
+            support_dir = '/usr/lib/kiwi/loader/'
+            shutil.copy2(support_dir + 'bootmgr', self.system_dir + '/bootmgr')
+            shutil.copytree(support_dir + 'Boot/', self.system_dir + '/Boot')
+        else:
+            mount(self.boot_part, self.boot_dir, mkdir=True)
+            pass
 
     def write_mbr(self):
-        subprocess.check_call(['ms-sys', '-7', self.install_drive])
+        subprocess.check_call(['ms-sys', '-S', self.disk_signature, '-7', self.install_drive],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
         self.logger.info('MBR written to {}'.format(self.install_drive))
 
     def exit(self):
@@ -332,7 +353,7 @@ sys.excepthook = handle_exception
 
 if __name__ == '__main__':
     logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(logging.INFO)
 
     fh = logging.FileHandler('/tmp/kiwi-install.log')
     logger.addHandler(fh)
