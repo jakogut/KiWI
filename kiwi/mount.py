@@ -13,7 +13,8 @@ def mountpoint(path):
     return True
 
 def unmount(path):
-    subprocess.check_call(['umount', path])
+    subprocess.check_call(['umount', path], stdout=subprocess.PIPE,
+                                            stderr=subprocess.PIPE)
 
 def mount(src, dst, mkdir=False, force=False, bind=False, ro=False):
     if mkdir: subprocess.check_call(['mkdir', '-p', dst])
@@ -33,5 +34,6 @@ def mount(src, dst, mkdir=False, force=False, bind=False, ro=False):
         call.append('-o')
         call.append(options)
 
-    subprocess.check_call(call)
+    subprocess.check_call(call, stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE)
 
