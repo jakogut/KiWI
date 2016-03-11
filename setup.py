@@ -8,3 +8,16 @@ setup(
     url = 'josephkogut.com/yaknet/kiwi.git',
     packages = ['kiwi'],
 )
+
+import shutil
+import glob
+import os
+
+support_dir = '/usr/lib/kiwi/'
+loader_dir = support_dir + 'loader/'
+
+try:
+    os.makedirs(support_dir, 755)
+    shutil.copytree('support/loader', loader_dir)
+except FileExistsError: pass
+
