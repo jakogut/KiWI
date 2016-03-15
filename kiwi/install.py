@@ -63,7 +63,7 @@ class WindowsInstallApp(object):
         while self.running: self.main_menu.run(ret=self.exit())
 
     def sync(self):
-        self.d.infobox('Syncing buffered data, do NOT reboot!')
+        self.d.infobox('Syncing buffered data\n\nDo NOT reboot!', width=30)
         subprocess.check_call(['sync'])
 
     def reboot(self):
