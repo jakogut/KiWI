@@ -274,10 +274,13 @@ class WindowsInstallApp(object):
         if code == self.d.OK: self.image_path = tag
         else: return
 
-        image_info = wiminfo(self.image_path)
-        entries = [tuple([image['Index'],
-            image['Display Name'] + ' ' + image['Architecture']])
-            for image in image_info]
+        entries = [
+            tuple([
+                image['Index'],
+                # Not every WIM has 'Display Name' defined
+                image.get('Display Name') or image.get('Description') + ' ' +
+                image.get('Architecture')
+            ]) for image in wiminfo(self.image_path)]
 
         code, tag = self.d.menu('Choose an image', choices=entries)
         if code == self.d.OK: self.image_index = tag
