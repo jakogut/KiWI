@@ -320,14 +320,20 @@ class WindowsInstallApp(object):
 
             exit_code = self.d.gauge_stop()
 
-    def install_bootloader(self):
+    def install_bootloader(self, bootloader_id):
         if not self.uefi:
             self.write_mbr()
             mount(self.system_part, self.system_dir, mkdir=True)
 
-            support_dir = '/usr/lib/kiwi/loader/'
-            shutil.copy2(support_dir + 'bootmgr', self.system_dir + '/bootmgr')
-            shutil.copytree(support_dir + 'Boot/', self.system_dir + '/Boot')
+            subprocess.check_call(['ntfscp', '-N', 'hidden', '1',
+                os.path.join(self.system_dir, '/Windows/Boot/PCAT'),
+                os.path.join(self.system_dir, '/Boot')])
+
+            subprocess.check_call(['ntfscp', '-N', 'hidden', '1',
+                os.path.join(self.system_dir, '/Boot/bootmgr', self.system_dir)])
+
+            import BCD
+            BCD.write_bcd(BCDwin7_bcd, os.path.join(self.system_dir), '/Boot/BCD')
         else:
             mount(self.boot_part, self.boot_dir, mkdir=True)
             pass
