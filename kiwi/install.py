@@ -329,9 +329,11 @@ class WindowsInstallApp(object):
             '-n', 'system.ntfs_attrib', path])
 
     def install_bootloader(self):
+        from . import BCD
+        mount(self.system_part, self.system_dir, mkdir=True)
+
         if not self.uefi:
             self.write_mbr()
-            mount(self.system_part, self.system_dir, mkdir=True)
 
             shutil.copytree(
                 os.path.join(self.system_dir, 'Windows/Boot/PCAT'),
@@ -343,11 +345,23 @@ class WindowsInstallApp(object):
             for file in ['Boot', 'bootmgr']:
                 self.ntfs_hide(os.path.join(self.system_dir, file))
 
-            from . import BCD
             BCD.write_bcd(BCD.win7_bcd, os.path.join(self.system_dir, 'Boot/BCD'))
         else:
             mount(self.boot_part, self.boot_dir, mkdir=True)
-            pass
+
+            for dir in ['Boot', 'Microsoft']:
+                os.makedirs(os.path.join(self.boot_dir, 'EFI/' + dir))
+
+            shutil.copytree(
+                os.path.join(self.system_dir, 'Windows/Boot/EFI'),
+                os.path.join(self.boot_dir, 'EFI/Microsoft/Boot'))
+
+            shutil.copyfile(
+                os.path.join(self.boot_dir, 'EFI/Microsoft/Boot/bootmgfw.efi'),
+                os.path.join(self.boot_dir, 'EFI/Boot/bootx64.efi'))
+
+            BCD.write_bcd(BCD.win7_bcd,
+                os.path.join(self.boot_dir, 'EFI/Microsoft/Boot/BCD'))
 
     def write_mbr(self):
         subprocess.check_call(['ms-sys', '-S', self.disk_signature, '-7', self.install_drive],
