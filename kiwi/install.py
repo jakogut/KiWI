@@ -184,9 +184,10 @@ class WindowsInstallApp(object):
         subprocess.check_call(['parted', '-s', self.install_drive,
                                'mklabel', partition_table])
         if self.uefi:
-            subprocess.check_call(['parted', '-s', self.install_drive, '--',
-                                   'mkpart', 'ESP', 'fat32', '2048s', '512',
-                                   'mkpart', 'Windows', 'NTFS', '512', '-1s',
+            subprocess.check_call(['parted', '--align', 'optimal',
+                                   '-s', self.install_drive, '--',
+                                   'mkpart', 'ESP', 'fat32', '0%s', '512',
+                                   'mkpart', 'Windows', 'NTFS', '512', '100%',
                                    'set', '1', 'esp', 'on'])
 
             self.boot_part = self.install_drive + '1'
