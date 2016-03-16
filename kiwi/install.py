@@ -324,20 +324,27 @@ class WindowsInstallApp(object):
 
             exit_code = self.d.gauge_stop()
 
-    def install_bootloader(self, bootloader_id):
+    def ntfs_hide(self, path):
+        subprocess.check_call(['setfattr', '-h', '-v', '0x02000000',
+            '-n', 'system.ntfs_attrib', path])
+
+    def install_bootloader(self):
         if not self.uefi:
             self.write_mbr()
             mount(self.system_part, self.system_dir, mkdir=True)
 
-            subprocess.check_call(['ntfscp', '-N', 'hidden', '1',
-                os.path.join(self.system_dir, '/Windows/Boot/PCAT'),
-                os.path.join(self.system_dir, '/Boot')])
+            shutil.copytree(
+                os.path.join(self.system_dir, 'Windows/Boot/PCAT'),
+                os.path.join(self.system_dir, 'Boot'))
 
-            subprocess.check_call(['ntfscp', '-N', 'hidden', '1',
-                os.path.join(self.system_dir, '/Boot/bootmgr', self.system_dir)])
+            shutil.copy2(
+                os.path.join(self.system_dir, 'Boot/bootmgr'), self.system_dir)
 
-            import BCD
-            BCD.write_bcd(BCDwin7_bcd, os.path.join(self.system_dir), '/Boot/BCD')
+            for file in ['Boot', 'bootmgr']:
+                self.ntfs_hide(os.path.join(self.system_dir, file))
+
+            from . import BCD
+            BCD.write_bcd(BCD.win7_bcd, os.path.join(self.system_dir, 'Boot/BCD'))
         else:
             mount(self.boot_part, self.boot_dir, mkdir=True)
             pass
