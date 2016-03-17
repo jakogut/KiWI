@@ -226,10 +226,6 @@ class WindowsInstallApp(object):
         self.logger.info('Sucessfully partitioned installation drive')
         return self.d.OK
 
-    def mount_partitions(self):
-
-        self.logger.info('Mounted partitions successfully')
-
     def prepare_source(self):
         source_items = [
             ('Network Filesystem (NFS)', MenuItem(self.prepare_nfs_source)),
