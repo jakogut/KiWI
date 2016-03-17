@@ -163,7 +163,7 @@ class WindowsInstallApp(object):
         for dir in [self.system_dir, self.boot_dir]:
             if mountpoint(dir): unmount(dir)
 
-        partitions = glob.glob(self.install_drive + '*')
+        partitions = glob.glob(self.install_drive + '+.')
         for part in partitions:
             logger.debug('Unmounting partition {}'.format(part))
             try: unmount(part)
