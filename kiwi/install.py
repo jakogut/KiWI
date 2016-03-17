@@ -31,7 +31,11 @@ class WindowsInstallApp(object):
         self.boot_dir = '/mnt/boot'
         self.system_dir = '/mnt/system'
 
-        self.disk_signature = '4D34B30F'
+        self.mbr_disk_signature = '4D34B30F'
+        self.gpt_disk_signature = '572BD0E9-D39E-422C-82E6-F37157C3535D'
+        self.boot_partuuid = '8d03c7bb-6b0c-4223-aaa1-f20bf521cd6e'
+        self.system_partuuid = '57092450-f142-4749-b540-f2ec0a183b7b'
+
         self.cluster_size = 4096
         self.fs_compression = False
         self.quick_format = True
@@ -345,9 +349,13 @@ class WindowsInstallApp(object):
             for file in ['Boot', 'bootmgr']:
                 self.ntfs_hide(os.path.join(self.system_dir, file))
 
-            BCD.write_bcd(BCD.win7_bcd, os.path.join(self.system_dir, 'Boot/BCD'))
+            BCD.write_bcd(BCD.bios_bcd, os.path.join(self.system_dir, 'Boot/BCD'))
         else:
             mount(self.boot_part, self.boot_dir, mkdir=True)
+            subprocess.check_call(['sgdisk', self.install_drive,
+                '-U', self.gpt_disk_signature,
+                '-u 1:' + self.boot_partuuid,
+                '-u 2:' + self.system_partuuid])
 
             for dir in ['Boot', 'Microsoft']:
                 os.makedirs(os.path.join(self.boot_dir, 'EFI/' + dir))
@@ -360,11 +368,11 @@ class WindowsInstallApp(object):
                 os.path.join(self.boot_dir, 'EFI/Microsoft/Boot/bootmgfw.efi'),
                 os.path.join(self.boot_dir, 'EFI/Boot/bootx64.efi'))
 
-            BCD.write_bcd(BCD.win7_bcd,
+            BCD.write_bcd(BCD.uefi_bcd,
                 os.path.join(self.boot_dir, 'EFI/Microsoft/Boot/BCD'))
 
     def write_mbr(self):
-        subprocess.check_call(['ms-sys', '-S', self.disk_signature, '-7', self.install_drive],
+        subprocess.check_call(['ms-sys', '-S', self.mbr_disk_signature, '-7', self.install_drive],
             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         self.logger.info('MBR written to {}'.format(self.install_drive))
