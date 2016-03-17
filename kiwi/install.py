@@ -221,6 +221,8 @@ class WindowsInstallApp(object):
         if self.uefi: subprocess.check_call(['mkfs.msdos', '-F32', self.boot_part],
             stdout = subprocess.PIPE, stderr=subprocess.PIPE)
 
+        self.d.infobox('Formatting drive...')
+
         self.logger.info('Sucessfully partitioned installation drive')
         return self.d.OK
 
