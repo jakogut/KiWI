@@ -27,6 +27,8 @@ class WindowsInstallApp(object):
 
         self.boot_part = ''
         self.system_part = ''
+        self.image_path = ''
+        self.image_index = ''
 
         self.boot_dir = '/mnt/boot'
         self.system_dir = '/mnt/system'
@@ -227,6 +229,9 @@ class WindowsInstallApp(object):
         return self.d.OK
 
     def prepare_source(self):
+        if not self.test_network():
+            self.configure_network()
+
         source_items = [
             ('Network Filesystem (NFS)', MenuItem(self.prepare_nfs_source)),
             #('Network Block Device (NBD)', MenuItem()),
@@ -291,6 +296,14 @@ class WindowsInstallApp(object):
         self.main_menu.advance()
 
     def install_os(self):
+        if not self.system_part:
+            self.auto_prepare()
+            self.main_menu.position -= 1
+
+        if not (self.image_path and self.image_index):
+            self.prepare_source()
+            self.main_menu.position -= 1
+
         self.extract_wim(self.image_path, self.image_index, self.system_part)
         self.sync()
 
