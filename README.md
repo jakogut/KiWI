@@ -12,7 +12,8 @@ KiWI was inspired by the Archboot setup wizard.
 ### Requirements
 python3
 python-dialog
-gparted
+parted
+gptfdisk
 ntfsprogs
 dosfstools
 ms-sys
