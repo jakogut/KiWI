@@ -9,6 +9,7 @@ import re
 import subprocess
 from time import sleep
 import shutil
+import configparser
 
 import logging
 import logging.handlers
@@ -19,9 +20,15 @@ from .wimlib import wiminfo
 
 logger = logging.getLogger()
 
+import urllib.request
+from urllib.error import HTTPError
+
+config_url = 'http://10.10.200.1/linux/kiwi/kiwi.conf'
+
 class WindowsInstallApp(object):
-    def __init__(self):
+    def __init__(self, config=None):
         self.logger = logging.getLogger(__name__)
+        self.config = config
 
         self.uefi = False
 
@@ -268,7 +275,9 @@ class WindowsInstallApp(object):
         self.select_source()
 
     def prepare_nfs_source(self):
-        code, path = self.d.inputbox('Enter an NFS server or share', width=40)
+        code, path = self.d.inputbox('Enter an NFS server or share',
+            init=self.config.get('source', 'default_nfs', fallback=''), width=40)
+
         if code != self.d.OK: return
         mount(path, self.source_dir, mkdir=True)
         self.select_source()
@@ -408,4 +417,15 @@ if __name__ == '__main__':
     fh = logging.FileHandler('/tmp/kiwi-install.log')
     logger.addHandler(fh)
 
-    app = WindowsInstallApp()
+    configdata = None
+
+    try:
+        configdata = urllib.request.urlopen(config_url)
+        configdata = configdata.read().decode('UTF-8')
+    except HTTPError as e:
+        logger.warning('Unable to fetch config file from URL {}'.format(config_url))
+
+    config = configparser.ConfigParser()
+    config.read_string(configdata)
+
+    app = WindowsInstallApp(config)
