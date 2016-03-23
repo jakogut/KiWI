@@ -140,18 +140,20 @@ class WindowsInstallApp(object):
 
         entries = [tuple([device['NAME'], '-']) for device in self.devices] + [('OTHER', '+')]
         code, tag = self.d.menu('Choose an installation drive', choices=entries)
-        if code != self.d.OK: return
+        if code != self.d.OK: raise FailedInstallStep
 
         if tag == 'OTHER':
             code, tag = self.d.inputbox('Enter a path to a block device')
-            if code != self.d.OK: return
+            if code != self.d.OK:
+                raise FailedInstallStep
+
+            if not os.path.isfile(tag):
+                raise FailedInstallStep
 
             import stat
             mode = os.stat(tag).st_mode
             if not stat.S_ISBLK(mode):
-                self.d.msgbox('File is not a block device.')
-                sleep(3)
-                return
+                raise FailedInstallStep
 
         code, confirmation = self.d.inputbox('This will erase ALL data on %s' % tag + \
             '\n\nType \'YES\' to continue', width=40, height=15)
@@ -159,7 +161,6 @@ class WindowsInstallApp(object):
 
         self.install_drive = tag
         self.logger.info('Block device {} selected for installation'.format(self.install_drive))
-        return self.d.OK
 
     def supports_uefi(self):
         p = subprocess.Popen(['efivar', '-l'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -167,13 +168,11 @@ class WindowsInstallApp(object):
         return uefi
 
     def auto_prepare(self):
-        try: self.select_disk()
-        except FailedInstallStep as e:
+        try:
+            self.select_disk()
+        except FailedInstallStep:
             self.d.msgbox('Disk selection failed. Please retry the step to prepare the storage device.', width=40)
-            return
-
-        if not hasattr(self, 'install_drive'):
-            return
+            raise
 
         for dir in [self.system_dir, self.boot_dir]:
             if mountpoint(dir): unmount(dir)
@@ -184,10 +183,12 @@ class WindowsInstallApp(object):
             try: unmount(part)
             except subprocess.CalledProcessError: pass
 
+        self.auto_partition()
+        self.auto_format()
+
         self.main_menu.advance()
 
     def auto_partition(self):
-
         if self.uefi is False:
             self.uefi = self.supports_uefi()
         else: uefi_forced = True
@@ -234,15 +235,17 @@ class WindowsInstallApp(object):
         if self.quick_format: call.append('-Q')
         call.append(self.system_part)
 
-        subprocess.check_call(call, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        try:
+            subprocess.check_call(call, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        if self.uefi: subprocess.check_call(['mkfs.msdos', '-F32', self.boot_part],
-            stdout = subprocess.PIPE, stderr=subprocess.PIPE)
+            if self.uefi: subprocess.check_call(['mkfs.msdos', '-F32', self.boot_part],
+                stdout = subprocess.PIPE, stderr=subprocess.PIPE)
+        except subprocess.CalledProcessError:
+            raise FailedInstallStep
 
         self.d.infobox('Formatting drive...')
 
-        self.logger.info('Sucessfully partitioned installation drive')
-        return self.d.OK
+        self.logger.info('Sucessfully formatted installation drive')
 
     def prepare_source(self):
         if not self.test_network():
@@ -258,8 +261,10 @@ class WindowsInstallApp(object):
             ('OTHER (Path)', MenuItem(self.prepare_fs_source)),
         ]
 
-        try: Menu(self.d, source_items, 'Select Installation Source', ret=None).run()
-        except FailedInstallStep: return
+        try:
+            Menu(self.d, source_items, 'Select Installation Source', ret=None).run()
+            self.select_source()
+        except FailedInstallStep: raise
         except subprocess.CalledProcessError:
             self.d.msgbox('Mount Failed. Please retry the installation source selection step')
 
@@ -267,15 +272,11 @@ class WindowsInstallApp(object):
         code, path = self.d.inputbox('Enter an NFS server or share',
             init=self.config.get('source', 'default_nfs', fallback=''), width=40)
 
-        if code != self.d.OK: raise FailedInstallStep
-
         mount(path, self.source_dir, force=True, mkdir=True)
-        self.select_source()
 
     def prepare_smb_source(self):
         code, path = self.d.inputbox(
             'Enter an SMB share path in the format \'user@//server/share\'', width=40)
-        if code != self.d.OK: raise FailedInstallStep
 
         user, passwd, cred = '', '', ''
         if '@' in path:
@@ -287,19 +288,14 @@ class WindowsInstallApp(object):
         if user: cred += 'username={},'.format(user)
 
         mount(path, self.source_dir, options=cred, force=True, mkdir=True, fs_type='cifs')
-        self.select_source()
 
     def prepare_fs_source(self):
         code, path = self.d.inputbox('Enter a UNIX path', width=40)
-        if code != self.d.OK: raise FailedInstallStep
         mount(path, self.source_dir, force=True, mkdir=True, bind=True)
-        self.select_source()
 
     def prepare_sshfs_source(self):
         code, path = self.d.inputbox('Enter an SSHFS path, in the format user@server:/', width=40)
-        if code != self.d.OK: raise FailedInstallStep
         code, passwd = self.d.passwordbox('Enter the password', width=40)
-        if code != self.d.OK: raise FailedInstallStep
 
         try: os.makedirs(self.source_dir)
         except FileExistsError: pass
@@ -313,13 +309,10 @@ class WindowsInstallApp(object):
         p = subprocess.Popen(call, stdin=subprocess.PIPE, stdout=open('/dev/null', 'w'))
         p.communicate(input=passwd.encode('UTF-8'))
         if p.returncode != 0: raise subprocess.CalledProcessError
-        self.select_source()
 
     def prepare_blk_source(self):
         code, path = self.d.inputbox('Enter a block device path', width=40)
-        if code != self.d.OK: raise FailedInstallStep
         mount(path, self.source_dir, force=True, mkdir=True)
-        self.select_source()
 
     def select_source(self):
         discovered_wims = glob.glob(self.source_dir + '**/*.wim', recursive=True)
@@ -356,13 +349,11 @@ class WindowsInstallApp(object):
 
     def install_os(self):
         if not self.system_part:
-            try: self.auto_prepare()
-            except FailedInstallStep: return
+            self.auto_prepare()
             self.main_menu.position -= 1
 
         if not (self.image_path and self.image_index):
-            try: self.prepare_source()
-            except FailedInstallStep: return
+            self.prepare_source()
             self.main_menu.position -= 1
 
         self.extract_wim(self.image_path, self.image_index, self.system_part)

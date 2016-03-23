@@ -1,3 +1,5 @@
+from .install import FailedInstallStep
+
 separator_tag = '*'
 
 class MenuItem(object):
@@ -7,7 +9,10 @@ class MenuItem(object):
 
     # Wrapper for child.function() that creates a call stack
     def run(self, ret=None):
-        if self.function: self.function()
+        try:
+            if self.function: self.function()
+        except: pass
+
         if ret: ret()
 
 class Menu(MenuItem):
