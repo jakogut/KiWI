@@ -10,9 +10,7 @@ def wiminfo(wim_path):
         cmd = [WIMLIB_IMAGEX_PATH, 'info', wim_path, str(index)]
         p = Popen(cmd, stdout=PIPE, stderr=PIPE)
         output, err = p.communicate()
-
-        rc = p.returncode
-        if rc is not 0: break
+        if p.returncode != 0: break
 
         properties = {}
         image_info = output.decode('UTF-8').split('\n')
