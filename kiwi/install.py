@@ -351,11 +351,13 @@ class WindowsInstallApp(object):
 
     def install_os(self):
         if not self.system_part:
-            self.auto_prepare()
+            try: self.auto_prepare()
+            except FailedInstallStep: return
             self.main_menu.position -= 1
 
         if not (self.image_path and self.image_index):
-            self.prepare_source()
+            try: self.prepare_source()
+            except FailedInstallStep: return
             self.main_menu.position -= 1
 
         self.extract_wim(self.image_path, self.image_index, self.system_part)
