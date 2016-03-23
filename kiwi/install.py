@@ -189,8 +189,10 @@ class WindowsInstallApp(object):
             self.uefi = self.supports_uefi()
         else: uefi_forced = True
 
-        if self.uefi and not uefi_forced: self.logger.info('Detected machine booted with UEFI, using GPT')
-        elif self.uefi and uefi_forced: self.logger.info('UEFI install forced, using GPT')
+        if self.uefi and not uefi_forced:
+            self.logger.info('Detected machine booted with UEFI, using GPT')
+        elif self.uefi and uefi_forced:
+            self.logger.info('UEFI install forced, using GPT')
         else: self.logger.info('UEFI not supported, creating DOS partition table')
 
         partition_table = 'msdos' if not self.uefi else 'gpt'
