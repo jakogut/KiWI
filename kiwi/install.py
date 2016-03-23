@@ -318,21 +318,32 @@ class WindowsInstallApp(object):
 
     def select_source(self):
         discovered_wims = glob.glob(self.source_dir + '**/*.wim', recursive=True)
+        discovered_wims += glob.glob(self.source_dir + '**/.esd', recursive=True)
+
+        #discovered_isos = glob.glob(self.source_dir + '**/.iso', recursive=True)
+
+        if not discovered_wims: # or discovered_isos:
+            self.d.msgbox('Failed to locate install sources. Check your media, and try again.', width=40)
+            raise FailedInstallStep
 
         entries = [tuple([wim, '-']) for wim in discovered_wims]
         code, tag = self.d.menu('Choose a WIM', choices=entries)
         if code == self.d.OK: self.image_path = tag
-        else: return
+        else: raise FailedInstallStep
 
-        entries = [
-            tuple([
-                image['Index'],
-                # Not every WIM has 'Display Name' defined
-                image.get('Display Name') or image.get('Description') + ' ' +
-                image.get('Architecture')
-            ]) for image in wiminfo(self.image_path)]
+        try:
+            entries = [
+                tuple([
+                    image['Index'],
+                    # Not every WIM has 'Display Name' defined
+                    image.get('Display Name') or image.get('Description') + ' ' +
+                    image.get('Architecture')
+                ]) for image in wiminfo(self.image_path)]
+        except subprocess.CalledProcessError:
+            self.d.msgbox('Image is invalid or corrupt. Please retry the installation source step.', width=40)
+            raise FailedInstallStep
 
-        code, tag = self.d.menu('Choose an image', choices=entries)
+        code, tag = self.d.menu('Choose an image', choices=entries, width=40)
         if code == self.d.OK: self.image_index = tag
         else: raise FailedInstallStep
 
