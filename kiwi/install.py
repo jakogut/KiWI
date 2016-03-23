@@ -262,8 +262,9 @@ class WindowsInstallApp(object):
         code, path = self.d.inputbox('Enter an NFS server or share',
             init=self.config.get('source', 'default_nfs', fallback=''), width=40)
 
-        if code != self.d.OK: return
-        mount(path, self.source_dir, mkdir=True)
+        if code != self.d.OK: raise FailedInstallStep
+
+        mount(path, self.source_dir, force=True, mkdir=True)
         self.select_source()
 
     def prepare_smb_source(self):
@@ -285,15 +286,15 @@ class WindowsInstallApp(object):
 
     def prepare_fs_source(self):
         code, path = self.d.inputbox('Enter a UNIX path', width=40)
-        if code != self.d.OK: return
-        mount(path, self.source_dir, mkdir=True, bind=True)
+        if code != self.d.OK: raise FailedInstallStep
+        mount(path, self.source_dir, force=True, mkdir=True, bind=True)
         self.select_source()
 
     def prepare_sshfs_source(self):
         code, path = self.d.inputbox('Enter an SSHFS path, in the format user@server:/', width=40)
-        if code != self.d.OK: return
+        if code != self.d.OK: raise FailedInstallStep
         code, passwd = self.d.passwordbox('Enter the password', width=40)
-        if code != self.d.OK: return
+        if code != self.d.OK: raise FailedInstallStep
 
         subprocess.check_call(['mkdir', '-p', self.source_dir])
         call = ['sshfs', path, self.source_dir, '-o', 'password_stdin']
@@ -303,16 +304,8 @@ class WindowsInstallApp(object):
 
     def prepare_blk_source(self):
         code, path = self.d.inputbox('Enter a block device path', width=40)
-        if code != self.d.OK: return
-        mount(path, self.source_dir, mkdir=True)
-        self.select_source()
-
-    def prepare_nfs_source(self):
-        code, path = self.d.inputbox('Enter an NFS server or share',
-            init=self.config.get('source', 'default_nfs', fallback=''), width=40)
-
-        if code != self.d.OK: return
-        mount(path, self.source_dir, mkdir=True)
+        if code != self.d.OK: raise FailedInstallStep
+        mount(path, self.source_dir, force=True, mkdir=True)
         self.select_source()
 
     def select_source(self):
@@ -333,7 +326,7 @@ class WindowsInstallApp(object):
 
         code, tag = self.d.menu('Choose an image', choices=entries)
         if code == self.d.OK: self.image_index = tag
-        else: return
+        else: raise FailedInstallStep
 
         self.main_menu.advance()
 
