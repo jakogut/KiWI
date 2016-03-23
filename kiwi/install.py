@@ -155,7 +155,7 @@ class WindowsInstallApp(object):
 
         code, confirmation = self.d.inputbox('This will erase ALL data on %s' % tag + \
             '\n\nType \'YES\' to continue', width=40, height=15)
-        if code != self.d.OK or confirmation != 'YES': return
+        if code != self.d.OK or confirmation != 'YES': raise FailedInstallStep
 
         self.install_drive = tag
         self.logger.info('Block device {} selected for installation'.format(self.install_drive))
@@ -167,7 +167,10 @@ class WindowsInstallApp(object):
         return uefi
 
     def auto_prepare(self):
-        self.select_disk()
+        try: self.select_disk()
+        except FailedInstallStep as e:
+            self.d.msgbox('Disk selection failed. Please retry the step to prepare the storage device.', width=40)
+            return
 
         if not hasattr(self, 'install_drive'):
             return
