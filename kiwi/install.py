@@ -25,6 +25,8 @@ from urllib.error import HTTPError
 
 config_url = 'http://10.10.200.1/linux/kiwi/kiwi.conf'
 
+class FailedInstallStep(Exception): pass
+
 class WindowsInstallApp(object):
     def __init__(self, config=None):
         self.logger = logging.getLogger(__name__)
