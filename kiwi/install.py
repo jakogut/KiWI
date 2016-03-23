@@ -253,7 +253,10 @@ class WindowsInstallApp(object):
             ('OTHER (Path)', MenuItem(self.prepare_fs_source)),
         ]
 
-        Menu(self.d, source_items, 'Select Installation Source', ret=None).run()
+        try: Menu(self.d, source_items, 'Select Installation Source', ret=None).run()
+        except FailedInstallStep: return
+        except subprocess.CalledProcessError:
+            self.d.msgbox('Mount Failed. Please retry the installation source selection step')
 
     def prepare_nfs_source(self):
         code, path = self.d.inputbox('Enter an NFS server or share',
