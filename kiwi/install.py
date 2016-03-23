@@ -148,7 +148,7 @@ class WindowsInstallApp(object):
             import stat
             mode = os.stat(tag).st_mode
             if not stat.S_ISBLK(mode):
-                self.d.infobox('File is not a block device.')
+                self.d.msgbox('File is not a block device.')
                 sleep(3)
                 return
 
