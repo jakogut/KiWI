@@ -93,7 +93,8 @@ class WindowsInstallApp(object):
         ]
 
         code, selected = self.d.checklist('Filesystem Options', choices=[
-            (choice[0], choice[1], getattr(self, choice[2])) for choice in choices])
+            (choice[0], choice[1], getattr(self, choice[2])) for choice in choices],
+            cancel_label='Back')
 
         if code != self.d.OK: return
 
