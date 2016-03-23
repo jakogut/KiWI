@@ -267,14 +267,20 @@ class WindowsInstallApp(object):
         self.select_source()
 
     def prepare_smb_source(self):
-        code, path = self.d.inputbox('Enter an SMB share path in the format \'user@//server/share\'', width=40)
-        if code != self.d.OK: return
-        code, passwd = self.d.passwordbox('Enter the share password, if applicable', width=40)
-        if code != self.d.OK: return
+        code, path = self.d.inputbox(
+            'Enter an SMB share path in the format \'user@//server/share\'', width=40)
+        if code != self.d.OK: raise FailedInstallStep
 
-        user, path = path.split('@')
-        cred = 'username={},password={}'.format(user, passwd)
-        mount(path, self.source_dir, options=cred, mkdir=True, type='cifs')
+        user, passwd, cred = '', '', ''
+        if '@' in path:
+            user, path = path.split('@')
+            code, passwd = self.d.passwordbox(
+                'Enter the share password, if applicable', width=40)
+
+        cred = 'password={},'.format(passwd)
+        if user: cred += 'username={},'.format(user)
+
+        mount(path, self.source_dir, options=cred, force=True, mkdir=True, fs_type='cifs')
         self.select_source()
 
     def prepare_fs_source(self):
