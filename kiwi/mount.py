@@ -26,7 +26,7 @@ def mount(src, dst, options='', **kwargs):
 
     call = ['mount', src, dst]
 
-    if kwargs.get('type'): call += ['-t', type]
+    if kwargs.get('type'): call += ['-t', fs_type]
 
     if kwargs.get('bind'): options += ',bind'
     if kwargs.get('ro'):   options += ',ro'
