@@ -181,9 +181,6 @@ class WindowsInstallApp(object):
             try: unmount(part)
             except subprocess.CalledProcessError: pass
 
-        if self.auto_partition() != self.d.OK: return
-        if self.auto_format() != self.d.OK: return
-
         self.main_menu.advance()
 
     def auto_partition(self):
@@ -199,26 +196,30 @@ class WindowsInstallApp(object):
         else: self.logger.info('UEFI not supported, creating DOS partition table')
 
         partition_table = 'msdos' if not self.uefi else 'gpt'
-        subprocess.check_call(['parted', '-s', self.install_drive,
-                               'mklabel', partition_table])
-        if self.uefi:
-            subprocess.check_call(['parted', '--align', 'optimal',
-                                   '-s', self.install_drive, '--',
-                                   'mkpart', 'ESP', 'fat32', '0%s', '512',
-                                   'mkpart', 'Windows', 'NTFS', '512', '100%',
-                                   'set', '1', 'esp', 'on'])
 
+        try:
+            subprocess.check_call(['parted', '-s', self.install_drive,
+                                   'mklabel', partition_table])
+            if self.uefi:
+                subprocess.check_call(['parted', '--align', 'optimal',
+                                       '-s', self.install_drive, '--',
+                                       'mkpart', 'ESP', 'fat32', '0%s', '512',
+                                       'mkpart', 'Windows', 'NTFS', '512', '100%',
+                                       'set', '1', 'esp', 'on'])
+            else:
+                subprocess.check_call(['parted', '-s', self.install_drive, '--',
+                                       'mkpart', 'primary', 'NTFS', '2048s', '-1s',
+                                       'set', '1', 'boot', 'on'])
+
+        except subprocess.CalledProcessError:
+            self.d.msgbox('Partitioning/formatting failed. Please retry.', width=40)
+            raise FailedInstallStep
+
+        if self.uefi:
             self.boot_part = self.install_drive + '1'
             self.system_part = self.install_drive + '2'
-
         else:
-            subprocess.check_call(['parted', '-s', self.install_drive, '--',
-                                   'mkpart', 'primary', 'NTFS', '2048s', '-1s',
-                                   'set', '1', 'boot', 'on'])
-
             self.system_part = self.install_drive + '1'
-
-        return self.d.OK
 
     def auto_format(self):
         call = ['mkfs.ntfs']
