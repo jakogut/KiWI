@@ -1,3 +1,13 @@
+""" The Boot Configuration Data (BCD) file is a mostly undocumented binary
+file used by the Windows Boot Manager to configure the boot process. Among
+other things, it specifies the boot drive disk signature, and system partition
+offset, or for GPT formatted disks, the disk and partition UUIDs.
+
+Generally speaking, the boot and/or system partitions have a unique, randomly
+generated signature or UUID that's written to the BCD by the Windows installer.
+Because of the lack of documentation Surrounding the BCD, we simply store the
+correct configuration here, Gzipped and base64 encoded. """
+
 import gzip
 import base64
 def write_bcd(bcd, path):
