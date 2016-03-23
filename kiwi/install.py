@@ -241,6 +241,7 @@ class WindowsInstallApp(object):
 
         source_items = [
             ('Network Filesystem (NFS)', MenuItem(self.prepare_nfs_source)),
+            ('Windows Share (SMB/CIFS)', MenuItem(self.prepare_smb_source)),
             #('Network Block Device (NBD)', MenuItem()),
             ('SCP/SFTP (SSH)', MenuItem(self.prepare_sshfs_source)),
             ('Block Device (USB, CD/DVD, etc.)', self.prepare_blk_source),
@@ -249,6 +250,25 @@ class WindowsInstallApp(object):
         ]
 
         Menu(self.d, source_items, 'Select Installation Source', ret=None).run()
+
+    def prepare_nfs_source(self):
+        code, path = self.d.inputbox('Enter an NFS server or share',
+            init=self.config.get('source', 'default_nfs', fallback=''), width=40)
+
+        if code != self.d.OK: return
+        mount(path, self.source_dir, mkdir=True)
+        self.select_source()
+
+    def prepare_smb_source(self):
+        code, path = self.d.inputbox('Enter an SMB share path in the format \'user@//server/share\'', width=40)
+        if code != self.d.OK: return
+        code, passwd = self.d.passwordbox('Enter the share password, if applicable', width=40)
+        if code != self.d.OK: return
+
+        user, path = path.split('@')
+        cred = 'username={},password={}'.format(user, passwd)
+        mount(path, self.source_dir, options=cred, mkdir=True, type='cifs')
+        self.select_source()
 
     def prepare_fs_source(self):
         code, path = self.d.inputbox('Enter a UNIX path', width=40)
