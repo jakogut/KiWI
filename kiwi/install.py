@@ -296,10 +296,18 @@ class WindowsInstallApp(object):
         code, passwd = self.d.passwordbox('Enter the password', width=40)
         if code != self.d.OK: raise FailedInstallStep
 
-        subprocess.check_call(['mkdir', '-p', self.source_dir])
+        try: os.makedirs(self.source_dir)
+        except FileExistsError: pass
+
+        if mountpoint(self.source_dir): unmount(self.source_dir)
+
+        disable_hostkey_check = ['-o', 'StrictHostKeyChecking=no']
         call = ['sshfs', path, self.source_dir, '-o', 'password_stdin']
-        p = subprocess.Popen(call, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+        call += disable_hostkey_check
+
+        p = subprocess.Popen(call, stdin=subprocess.PIPE, stdout=open('/dev/null', 'w'))
         p.communicate(input=passwd.encode('UTF-8'))
+        if p.returncode != 0: raise subprocess.CalledProcessError
         self.select_source()
 
     def prepare_blk_source(self):
