@@ -16,7 +16,7 @@ def unmount(path):
     subprocess.check_call(['umount', path], stdout=subprocess.PIPE,
                                             stderr=subprocess.PIPE)
 
-def mount(src, dst, mkdir=False, force=False, bind=False, ro=False):
+def mount(src, dst, type='', mkdir=False, force=False, bind=False, ro=False):
     if mkdir: subprocess.check_call(['mkdir', '-p', dst])
 
     if mountpoint(dst):
@@ -25,6 +25,8 @@ def mount(src, dst, mkdir=False, force=False, bind=False, ro=False):
         else: return
 
     call = ['mount', src, dst]
+
+    if type: call += ['-t', type]
 
     options = ''
     if bind: options += ',bind'
