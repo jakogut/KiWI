@@ -43,3 +43,9 @@ python setup.py install
 
 ## Usage
 python -m kiwi.install
+
+## Screenshots
+![Main Menu](/screenshots/menu.png?raw=true)
+![Sources](/screenshots/sources.png?raw=true)
+![Sources](/screenshots/editions.png?raw=true)
+![Sources](/screenshots/extraction.png?raw=true)
