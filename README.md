@@ -10,19 +10,20 @@ https://wiki.archlinux.org/index.php/Diskless_system
 KiWI was inspired by the Archboot setup wizard.
 
 ### Requirements
-python3
-python-dialog
-parted
-gptfdisk
-ntfsprogs
-dosfstools
-ms-sys
-wimlib
+* python3
+* python-dialog
+* parted
+* gptfdisk
+* ntfsprogs
+* ntfs-3g
+* dosfstools
+* ms-sys
+* wimlib
 
 #### Optional:
-nfs-utils
-nbd
-sshfs
+* nfs-utils
+* nbd
+* sshfs
 
 ## Installation
 python setup.py install
