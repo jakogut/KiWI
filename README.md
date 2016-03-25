@@ -46,6 +46,7 @@ python -m kiwi.install
 
 ## Troubleshooting
 * Windows 10 images appear to be stuck at 0% on "Creating files", what gives?
+  
 There's a bug in older versions of libntfs-3g that causes wimlib to fail to parse the security descriptors in the image. Installing the ntfs-3g-fuse package from the Arch User Repository seems to fix the issue for now.
 
 ## Screenshots
