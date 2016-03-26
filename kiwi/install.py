@@ -21,9 +21,11 @@ from .wimlib import wiminfo
 logger = logging.getLogger()
 
 import urllib.request
-from urllib.error import HTTPError
+from urllib.error import HTTPError, URLError
+import socket
 
 config_url = 'http://10.10.200.1/linux/kiwi/kiwi.conf'
+config_timeout=0.1
 
 class FailedInstallStep(Exception): pass
 
@@ -463,10 +465,11 @@ if __name__ == '__main__':
     configdata = None
 
     try:
-        configdata = urllib.request.urlopen(config_url)
-        configdata = configdata.read().decode('UTF-8')
-    except HTTPError as e:
+        configdata = urllib.request.urlopen(config_url, timeout=config_timeout).read().decode('UTF-8')
+    except (HTTPError, URLError):
         logger.warning('Unable to fetch config file from URL {}'.format(config_url))
+    except socket.timeout:
+        logger.warning('Socket timed out while trying to fetch config')
 
     config = configparser.ConfigParser()
     config.read_string(configdata)
